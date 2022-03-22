@@ -2,6 +2,7 @@ package academy.devdojo.reactive;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 
@@ -27,7 +28,7 @@ import reactor.test.StepVerifier;
 public class MonoTest {
 
     @Test
-    public void monoSubscriber() {
+    void monoSubscriber() {
         String name = "Levi Ferreira";
         Mono<String> mono = Mono.just(name).log();
 
@@ -38,7 +39,7 @@ public class MonoTest {
     }
 
     @Test
-    public void monoSubscriberConsumer() {
+    void monoSubscriberConsumer() {
         String name = "Levi Ferreira";
         Mono<String> mono = Mono.just(name);
 
@@ -50,7 +51,7 @@ public class MonoTest {
     }
 
     @Test
-    public void monoSubscriberConsumerError() {
+    void monoSubscriberConsumerError() {
         String name = "Levi Ferreira";
         Mono<String> mono = Mono.just(name)
             .map(s -> {
@@ -65,7 +66,7 @@ public class MonoTest {
     }
 
     @Test
-    public void monoSubscriberConsumerComplete() {
+    void monoSubscriberConsumerComplete() {
         String name = "Levi Ferreira";
         Mono<String> mono = Mono.just(name)
             .map(String::toUpperCase);
@@ -80,7 +81,7 @@ public class MonoTest {
     }
 
     @Test
-    public void monoSubscriberConsumerSubscription() {
+    void monoSubscriberConsumerSubscription() {
         String name = "Levi Ferreira";
         Mono<String> mono = Mono.just(name)
             .map(String::toUpperCase);
@@ -94,5 +95,23 @@ public class MonoTest {
         StepVerifier.create(mono)
             .expectNext(name.toUpperCase())
             .verifyComplete();
+    }
+
+    @Test
+    void monoDoOnMethods() {
+        String name = "Levi Ferreira";
+        Mono<Object> mono = Mono.just(name)
+            .map(String::toUpperCase)
+            .doOnSubscribe(s -> log.info("Subscribed!"))
+            .doOnRequest(value -> log.info("onRequest triggered"))
+            .doOnNext(value -> log.info("onNext value: {}", value))
+            .flatMap(s -> Mono.empty())
+            .doOnNext(value -> log.info("Should not trigger this"))
+            .doOnSuccess(value -> log.info("onSuccess value should be null: {}", value));
+
+        mono.subscribe(
+            s -> log.info("Value: {}", s),
+            Throwable::printStackTrace,
+            () -> log.info("FINISHED!"));
     }
 }
