@@ -114,4 +114,33 @@ public class MonoTest {
             Throwable::printStackTrace,
             () -> log.info("FINISHED!"));
     }
+
+    @Test
+    void monoDoOnError() {
+        Mono<Object> mono = Mono.error(new IllegalArgumentException("Illegal argument"))
+            .doOnError(e -> log.error("Error message: {}", e.getMessage()))
+            .doOnNext(s -> log.info("Should not log this messsage"))
+            .log();
+
+        StepVerifier.create(mono)
+            .expectError(IllegalArgumentException.class)
+            .verify();
+    }
+
+    @Test
+    void monoOnErrorResume() {
+        var name = "Levi Ferreira";
+        Mono<Object> mono = Mono.error(new IllegalArgumentException("Illegal argument"))
+            //.onErrorReturn(name.toUpperCase())
+            .onErrorResume(e -> {
+                log.error("Error: {}", e.getMessage());
+                return Mono.just(name);
+            })
+            .log();
+
+        StepVerifier.create(mono)
+            //.expectNext(name.toUpperCase())
+            .expectNext(name)
+            .verifyComplete();
+    }
 }
