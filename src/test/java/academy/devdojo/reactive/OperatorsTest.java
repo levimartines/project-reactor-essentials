@@ -8,6 +8,7 @@ import reactor.test.StepVerifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -139,5 +140,39 @@ public class OperatorsTest {
                 return true;
             })
             .verifyComplete();
+    }
+
+    @Test
+    void switchIfEmptyOperator() {
+        String message = "Not empty anymore";
+        Flux<Object> flux = Flux.empty()
+            .switchIfEmpty(Flux.just(message))
+            .log();
+
+        StepVerifier.create(flux)
+            .expectSubscription()
+            .expectNext(message)
+            .verifyComplete();
+    }
+
+    @Test
+    void deferOperator() throws Exception {
+        Mono<Long> defer = Mono.defer(() -> Mono.just(System.currentTimeMillis()));
+
+        defer.subscribe(currentMillis -> log.info("Time: {}", currentMillis));
+        Thread.sleep(200);
+
+        defer.subscribe(currentMillis -> log.info("Time: {}", currentMillis));
+        Thread.sleep(200);
+
+        defer.subscribe(currentMillis -> log.info("Time: {}", currentMillis));
+        Thread.sleep(200);
+
+        defer.subscribe(currentMillis -> log.info("Time: {}", currentMillis));
+
+        AtomicLong atomicLong = new AtomicLong();
+        defer.subscribe(atomicLong::set);
+
+        Assertions.assertTrue(atomicLong.get() > 0);
     }
 }
