@@ -222,4 +222,17 @@ public class FluxTest {
             .expectNext(5, 6, 7, 8, 9, 10)
             .verifyComplete();
     }
+
+    @Test
+    void connectableFluxAutoConnect() throws InterruptedException {
+        Flux<Integer> flux = Flux.range(5, 5)
+            .delayElements(Duration.ofMillis(100))
+            .publish()
+            .autoConnect(2);
+
+        StepVerifier.create(flux)
+            .then(flux::subscribe)
+            .expectNext(5, 6, 7, 8, 9, 9)
+            .verifyComplete();
+    }
 }
