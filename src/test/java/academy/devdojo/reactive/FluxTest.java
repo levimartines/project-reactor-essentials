@@ -4,6 +4,7 @@ import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -155,5 +156,35 @@ public class FluxTest {
         StepVerifier.create(flux)
             .expectNext(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
             .verifyComplete();
+    }
+
+    @Test
+    void fluxSubscriberInterval() throws InterruptedException {
+        Flux<Long> interval = Flux.interval(Duration.ofMillis(200))
+            .take(10)
+            .log();
+
+        interval.subscribe(i -> log.info("Value: {}", i));
+
+        Thread.sleep(3000);
+    }
+
+    @Test
+    void fluxSubscriberIntervalV2() {
+        StepVerifier.withVirtualTime(this::createIntervalFlux)
+            .expectSubscription()
+            .expectNoEvent(Duration.ofDays(1))
+            .thenAwait(Duration.ofDays(1))
+            .expectNext(0L)
+            .thenAwait(Duration.ofDays(1))
+            .expectNext(1L)
+            .thenCancel()
+            .verify();
+    }
+
+    Flux<Long> createIntervalFlux(){
+        return Flux.interval(Duration.ofDays(1))
+            .take(10)
+            .log();
     }
 }
