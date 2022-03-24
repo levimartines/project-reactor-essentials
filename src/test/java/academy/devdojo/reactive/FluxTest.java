@@ -1,6 +1,7 @@
 package academy.devdojo.reactive;
 
 import reactor.core.publisher.BaseSubscriber;
+import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -15,7 +16,6 @@ import org.reactivestreams.Subscription;
 
 @Slf4j
 public class FluxTest {
-
 
     @Test
     void fluxSubscriber() {
@@ -42,7 +42,6 @@ public class FluxTest {
             .expectNext(1, 2, 3, 4, 5)
             .verifyComplete();
     }
-
 
     @Test
     void fluxSubscriberNumbersWithError() {
@@ -195,9 +194,32 @@ public class FluxTest {
             .verify();
     }
 
-    Flux<Long> createIntervalFlux() {
+    private Flux<Long> createIntervalFlux() {
         return Flux.interval(Duration.ofDays(1))
             .take(10)
             .log();
+    }
+
+    @Test
+    void connectableFlux() throws InterruptedException {
+        ConnectableFlux<Integer> flux = Flux.range(1, 10)
+//            .log()
+            .delayElements(Duration.ofMillis(100))
+            .publish();
+
+        flux.connect();
+
+        log.info("Thread sleeping for 300ms");
+        Thread.sleep(300);
+        flux.subscribe(value -> log.info("Subscription 1 - VALUE {}", value));
+
+        log.info("Thread sleeping for 200ms");
+        Thread.sleep(200);
+        flux.subscribe(value -> log.info("Subscription 2 - VALUE {}", value));
+
+        StepVerifier.create(flux)
+            .then(flux::connect)
+            .expectNext(5, 6, 7, 8, 9, 10)
+            .verifyComplete();
     }
 }
