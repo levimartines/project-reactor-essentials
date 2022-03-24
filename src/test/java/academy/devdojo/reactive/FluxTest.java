@@ -159,6 +159,19 @@ public class FluxTest {
     }
 
     @Test
+    void fluxSubscriberNumbersBackPressureV3() {
+        Flux<Integer> flux = Flux.range(1, 10)
+            .log()
+            .limitRate(3);
+
+        flux.subscribe(value -> log.info("Value: {}", value));
+
+        StepVerifier.create(flux)
+            .expectNext(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+            .verifyComplete();
+    }
+
+    @Test
     void fluxSubscriberInterval() throws InterruptedException {
         Flux<Long> interval = Flux.interval(Duration.ofMillis(200))
             .take(10)
@@ -182,7 +195,7 @@ public class FluxTest {
             .verify();
     }
 
-    Flux<Long> createIntervalFlux(){
+    Flux<Long> createIntervalFlux() {
         return Flux.interval(Duration.ofDays(1))
             .take(10)
             .log();
