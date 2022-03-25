@@ -7,6 +7,7 @@ import reactor.test.StepVerifier;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -174,5 +175,43 @@ public class OperatorsTest {
         defer.subscribe(atomicLong::set);
 
         Assertions.assertTrue(atomicLong.get() > 0);
+    }
+
+    @Test
+    void concatOperator() {
+        Flux<Integer> flux1 = Flux.just(1, 2);
+        Flux<Integer> flux2 = Flux.just(3, 4);
+
+        Flux<Integer> concat = Flux.concat(flux1, flux2).log();
+
+        StepVerifier.create(concat)
+            .expectSubscription()
+            .expectNext(1, 2, 3, 4)
+            .verifyComplete();
+    }
+
+    @Test
+    void concatWithOperator() {
+        Flux<Integer> flux1 = Flux.just(1, 2);
+        Flux<Integer> flux2 = Flux.just(3, 4);
+
+        Flux<Integer> concat = flux1.concatWith(flux2).log();
+
+        StepVerifier.create(concat)
+            .expectSubscription()
+            .expectNext(1, 2, 3, 4)
+            .verifyComplete();
+    }
+    @Test
+    void combineLatestOperator() {
+        Flux<Integer> flux1 = Flux.just(1, 2).delayElements(Duration.ofMillis(100));
+        Flux<Integer> flux2 = Flux.just(3, 4);
+
+        Flux<Integer> combine = Flux.combineLatest(flux1, flux2, Integer::sum).log();
+
+        StepVerifier.create(combine)
+            .expectSubscription()
+            .expectNext(5, 6)
+            .verifyComplete();
     }
 }
