@@ -53,6 +53,12 @@
             <version>${junit-jupiter-api.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.projectreactor.tools</groupId>
+            <artifactId>blockhound</artifactId>
+            <version>1.0.6.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

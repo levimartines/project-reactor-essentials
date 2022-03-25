@@ -1,5 +1,6 @@
 package academy.devdojo.reactive;
 
+import reactor.blockhound.BlockHound;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -14,10 +15,16 @@ import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class OperatorsTest {
+
+    @BeforeAll
+    static void setup() {
+        BlockHound.install(builder -> builder.allowBlockingCallsInside("org.slf4j.impl.SimpleLogger", "write"));
+    }
 
     @Test
     void subscribeOn() {

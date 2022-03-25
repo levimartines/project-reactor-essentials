@@ -1,5 +1,6 @@
 package academy.devdojo.reactive;
 
+import reactor.blockhound.BlockHound;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
@@ -10,12 +11,18 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Slf4j
 public class FluxTest {
+
+    @BeforeAll
+    static void setup() {
+        BlockHound.install();
+    }
 
     @Test
     void fluxSubscriber() {
@@ -232,7 +239,7 @@ public class FluxTest {
 
         StepVerifier.create(flux)
             .then(flux::subscribe)
-            .expectNext(5, 6, 7, 8, 9, 9)
+            .expectNext(5, 6, 7, 8, 9)
             .verifyComplete();
     }
 }

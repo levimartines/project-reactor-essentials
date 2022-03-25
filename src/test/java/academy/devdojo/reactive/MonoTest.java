@@ -2,11 +2,19 @@ package academy.devdojo.reactive;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 
+import reactor.blockhound.BlockHound;
+import reactor.blockhound.BlockingOperationError;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
+
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class MonoTest {
@@ -25,6 +33,26 @@ public class MonoTest {
     *   2. Publisher sends all the objects it has. (onComplete) subscriber and subscription will be canceled
     *   3. There is an error. (onError) -> subscriber and subscription will be canceled
     * */
+
+    @BeforeAll
+    static void setup() {
+        BlockHound.install();
+    }
+
+    @Test
+    void blockHoundWorks() {
+        try {
+            FutureTask<?> task = new FutureTask<>(() -> {
+                Thread.sleep(0);
+                return "";
+            });
+            Schedulers.parallel().schedule(task);
+            task.get(10, TimeUnit.SECONDS);
+            Assertions.fail("Should fail");
+        } catch (Exception e) {
+            Assertions.assertTrue(e.getCause() instanceof BlockingOperationError);
+        }
+    }
 
     @Test
     void monoSubscriber() {
