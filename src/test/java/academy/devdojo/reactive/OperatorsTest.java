@@ -202,6 +202,7 @@ public class OperatorsTest {
             .expectNext(1, 2, 3, 4)
             .verifyComplete();
     }
+
     @Test
     void combineLatestOperator() {
         Flux<Integer> flux1 = Flux.just(1, 2).delayElements(Duration.ofMillis(100));
@@ -214,4 +215,32 @@ public class OperatorsTest {
             .expectNext(5, 6)
             .verifyComplete();
     }
+
+    @Test
+    void mergeOperator() {
+        Flux<String> flux1 = Flux.just("a", "b").delayElements(Duration.ofMillis(1));
+        Flux<String> flux2 = Flux.just("c", "d");
+
+        Flux<String> merge = Flux.merge(flux1, flux2)
+            //.delayElements(Duration.ofMillis(200))
+            .log();
+
+        StepVerifier.create(merge)
+            .expectSubscription()
+            .expectNext("c", "d", "a", "b")
+            .verifyComplete();
+    }
+
+
+    @Test
+    void mergeWithOperator() {
+        Flux<String> flux1 = Flux.just("a", "b").delayElements(Duration.ofMillis(1));
+        Flux<String> merge = flux1.mergeWith(Flux.just("c", "d"));
+
+        StepVerifier.create(merge)
+            .expectSubscription()
+            .expectNext("c", "d", "a", "b")
+            .verifyComplete();
+    }
+
 }
