@@ -273,7 +273,7 @@ public class OperatorsTest {
                     throw new IllegalArgumentException("Value is B");
                 }
                 return v;
-            });
+            }).doOnError(e -> log.info("Error: {}", e.getMessage()));
         Flux<String> flux2 = Flux.just("c", "d");
 
         Flux<String> merge = Flux.mergeDelayError(1, flux1, flux2);
