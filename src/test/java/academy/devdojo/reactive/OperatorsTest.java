@@ -243,4 +243,46 @@ public class OperatorsTest {
             .verifyComplete();
     }
 
+
+    @Test
+    void concatDelayErrorOperator() {
+        Flux<String> flux1 = Flux.just("a", "b")
+            .map(v -> {
+                if ("b".equals(v)) {
+                    throw new IllegalArgumentException("Value is B");
+                }
+                return v;
+            });
+        Flux<String> flux2 = Flux.just("c", "d");
+
+        Flux<String> concat = Flux.concatDelayError(flux1, flux2);
+
+        StepVerifier.create(concat)
+            .expectSubscription()
+            .expectNext("a", "c", "d")
+            .expectError()
+            .verify();
+    }
+
+
+    @Test
+    void mergeDelayErrorOperator() {
+        Flux<String> flux1 = Flux.just("a", "b")
+            .map(v -> {
+                if ("b".equals(v)) {
+                    throw new IllegalArgumentException("Value is B");
+                }
+                return v;
+            });
+        Flux<String> flux2 = Flux.just("c", "d");
+
+        Flux<String> merge = Flux.mergeDelayError(1, flux1, flux2);
+
+        StepVerifier.create(merge)
+            .expectSubscription()
+            .expectNext("a", "c", "d")
+            .expectError()
+            .verify();
+    }
+
 }
