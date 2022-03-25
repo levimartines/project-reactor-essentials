@@ -319,4 +319,37 @@ public class OperatorsTest {
             : Flux.just("B1", "B2");
     }
 
+    @Test
+    void zipOperator() {
+        Flux<String> titlesFlux = Flux.just("Grand Blue", "Baki");
+        Flux<String> studiosFlux = Flux.just("Zero-G", "TMS Entertainment");
+        Flux<Integer> episodesFlux = Flux.just(12, 24);
+
+        Flux<Anime> animeFlux = Flux.zip(titlesFlux, studiosFlux, episodesFlux)
+            .flatMap(tuple -> Flux.just(new Anime(tuple.getT1(), tuple.getT2(), tuple.getT3())))
+            .log();
+
+        StepVerifier.create(animeFlux)
+            .expectSubscription()
+            .expectNext(new Anime("Grand Blue", "Zero-G", 12))
+            .expectNext(new Anime("Baki", "TMS Entertainment", 24))
+            .verifyComplete();
+    }
+
+    @Test
+    void zipWithOperator() {
+        Flux<String> titlesFlux = Flux.just("Grand Blue", "Baki");
+        Flux<Integer> episodesFlux = Flux.just(12, 24);
+
+        Flux<Anime> animeFlux = titlesFlux.zipWith(episodesFlux)
+            .flatMap(tuple -> Flux.just(new Anime(tuple.getT1(), null, tuple.getT2())))
+            .log();
+
+        StepVerifier.create(animeFlux)
+            .expectSubscription()
+            .expectNext(new Anime("Grand Blue", null, 12))
+            .expectNext(new Anime("Baki", null, 24))
+            .verifyComplete();
+    }
+
 }
