@@ -285,4 +285,38 @@ public class OperatorsTest {
             .verify();
     }
 
+    @Test
+    void flatMapOperator() {
+        Flux<String> flux = Flux.just("a", "b");
+
+        Flux<String> flatedFlux = flux.map(String::toUpperCase)
+            .flatMap(this::findByName)
+            .log();
+
+        StepVerifier.create(flatedFlux)
+            .expectSubscription()
+            .expectNext("B1", "B2", "A1", "A2")
+            .verifyComplete();
+    }
+
+    @Test
+    void flatMapSequentialOperator() {
+        Flux<String> flux = Flux.just("a", "b");
+
+        Flux<String> flatedFlux = flux.map(String::toUpperCase)
+            .flatMapSequential(this::findByName)
+            .log();
+
+        StepVerifier.create(flatedFlux)
+            .expectSubscription()
+            .expectNext("A1", "A2", "B1", "B2")
+            .verifyComplete();
+    }
+
+    private Flux<String> findByName(String name) {
+        return "A".equals(name)
+            ? Flux.just("A1", "A2").delayElements(Duration.ofMillis(100))
+            : Flux.just("B1", "B2");
+    }
+
 }
